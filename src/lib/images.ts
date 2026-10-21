@@ -1,0 +1,32 @@
+/** Local bakery assets under /public/images/real */
+export const siteImages = {
+  hero: "/images/real/hero-cake.png",
+  heroMobile: "/images/real/hero-mobile.png",
+  heroMobileFallback: "/images/real/hero-cake.png",
+  heroFallback: "/images/real/hero-cake.png",
+  logo: "/images/real/logo.svg",
+  customCake: "/images/real/custom-cake.png",
+  customCakeMobile: "/images/real/custom-cake.png",
+  customCakeFallback: "/images/real/custom-cake.jpg",
+  process: "/images/real/process.png",
+  categories: {
+    birthday: "/images/real/birthday-cake.jpg",
+    wedding: "/images/real/wedding-cake.png",
+    kids: "/images/real/kids-cake.jpg",
+    anniversary: "/images/real/anniversary-cake.jpg",
+    all: "/images/real/all-cakes.jpg",
+  },
+  galleryWaveBg: "/images/real/gallery-wave-bg.png",
+  footerBg: "/images/real/footer-bg.png",
+  footerCake: "/images/real/footer-cake.png",
+  footerCakeFallback: "/images/hero-cake.svg",
+  envelope: "/images/real/envelope.png",
+  gallery: [
+    "/images/real/gallery-1.jpg",
+    "/images/real/gallery-2.jpg",
+    "/images/real/gallery-3.jpg",
+    "/images/real/gallery-4.jpg",
+    "/images/real/gallery-5.jpg",
+  ],
+  aboutUs: "/images/real/about-us.png",
+} as const;

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 620" fill="none" role="img" aria-label="Decorative custom cake illustration">
+  <ellipse cx="260" cy="580" rx="200" ry="28" fill="#3D2314" opacity="0.08"/>
+  <path d="M120 420c0-88 62.8-160 140-160s140 72 140 160v120H120V420z" fill="#FFF8F0" stroke="#E8B4B8" stroke-width="3"/>
+  <path d="M150 320c0-72 49.2-130 110-130s110 58 110 130v100H150V320z" fill="#FCE8EA" stroke="#E8B4B8" stroke-width="3"/>
+  <path d="M180 230c0-58 35.8-105 80-105s80 47 80 105v90H180V230z" fill="#F5D5D8" stroke="#E8B4B8" stroke-width="3"/>
+  <ellipse cx="260" cy="230" rx="82" ry="18" fill="#FFF8F0" stroke="#E8B4B8" stroke-width="2.5"/>
+  <path d="M205 195c12-28 38-42 55-42s43 14 55 42" stroke="#3D2314" stroke-width="4" stroke-linecap="round" opacity="0.35"/>
+  <circle cx="215" cy="355" r="14" fill="#E8B4B8"/>
+  <circle cx="260" cy="375" r="16" fill="#F5D5D8" stroke="#E8B4B8" stroke-width="2"/>
+  <circle cx="305" cy="350" r="14" fill="#E8B4B8"/>
+  <circle cx="240" cy="265" r="12" fill="#E8B4B8"/>
+  <circle cx="285" cy="268" r="11" fill="#F5D5D8" stroke="#E8B4B8" stroke-width="2"/>
+  <path d="M248 178l12-34 12 34h-24z" fill="#3D2314" opacity="0.2"/>
+  <path d="M120 540h280" stroke="#E8B4B8" stroke-width="8" stroke-linecap="round"/>
+  <path d="M95 420h330" stroke="#F5D5D8" stroke-width="6" stroke-linecap="round" opacity="0.9"/>
+  <path d="M125 320h270" stroke="#FCE8EA" stroke-width="5" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 280" fill="none" aria-hidden="true">
+  <rect width="280" height="280" fill="#FCE8EA"/>
+  <ellipse cx="140" cy="250" rx="90" ry="12" fill="#3D2314" opacity="0.08"/>
+  <rect x="75" y="145" width="130" height="85" rx="12" fill="#F5D5D8" stroke="#E8B4B8" stroke-width="2.5"/>
+  <path d="M110 145V115M140 145V100M170 145V118" stroke="#E8B4B8" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="105" cy="185" r="8" fill="#E8B4B8"/><circle cx="140" cy="192" r="9" fill="#FFF8F0" stroke="#E8B4B8"/><circle cx="175" cy="182" r="7" fill="#E8B4B8"/>
+</svg>
