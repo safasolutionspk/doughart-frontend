@@ -4,7 +4,6 @@ node_modules
 .gitignore
 .env
 .env.*
-!.env.local
 !.env.example
 !.env.local.example
 *.md
@@ -12,3 +11,5 @@ node_modules
 .idea
 npm-debug.log*
 coverage
+AGENTS.md
+CLAUDE.md
