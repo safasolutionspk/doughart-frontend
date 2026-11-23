@@ -9,8 +9,13 @@ import { CakeCard } from "@/components/catalog/CakeCard";
 import { CategoryTabs } from "@/components/catalog/CategoryTabs";
 import { ShopEmptyState } from "@/components/catalog/ShopEmptyState";
 import { fetchPublicCakes, fetchPublicCategories } from "@/lib/catalog";
-import { buildPageMetadata, shopKeywords } from "@/lib/seo";
+import {
+  buildCategorySeoDescription,
+  buildPageMetadata,
+  shopKeywords,
+} from "@/lib/seo";
 import { getBusinessName } from "@/lib/settings";
+import { buildBreadcrumbStructuredData } from "@/lib/structuredData";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -46,15 +51,22 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     slug !== ALL_SLUG
       ? categories.find((category) => category.slug === slug)
       : undefined;
-  const description =
-    activeCategory?.description ??
-    `Shop ${title.toLowerCase()} at ${businessName} — browse cakes, place your order online, or request customizations on WhatsApp.`;
+  const description = buildCategorySeoDescription({
+    categoryName: title,
+    categoryDescription: activeCategory?.description,
+    businessName,
+  });
 
   return buildPageMetadata({
     title,
     description,
     path: `/cakes/${slug}`,
-    keywords: [slug, title.toLowerCase(), ...shopKeywords],
+    keywords: [
+      slug,
+      title,
+      `${title} Lahore`,
+      ...shopKeywords,
+    ],
     brandName: businessName,
   });
 }
@@ -80,9 +92,22 @@ export default async function CakesCategoryPage({ params }: PageProps) {
       ? categories.find((category) => category.slug === slug)
       : undefined;
   const description = activeCategory?.description;
+  const breadcrumbStructuredData = buildBreadcrumbStructuredData([
+    { name: "Home", path: "/" },
+    {
+      name: title,
+      path: `/cakes/${slug}`,
+    },
+  ]);
 
   return (
     <PublicPageLayout mainId="cakes-category" ariaLabel={`${title} cakes`}>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(breadcrumbStructuredData),
+          }}
+        />
         <section className="section-padding bg-gradient-to-b from-brand-pink-lighter via-white to-brand-cream">
           <div className="section-container">
             <nav

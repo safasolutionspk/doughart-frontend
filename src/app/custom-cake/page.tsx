@@ -3,15 +3,27 @@ import { Suspense } from "react";
 import { PublicPageLayout } from "@/components/layout/PublicPageLayout";
 import { CustomCakeOrderForm } from "@/components/sections/CustomCakeOrderForm";
 import { fetchPublicCakeBySlug } from "@/lib/catalog";
-import { buildPageMetadata } from "@/lib/seo";
-import { getBusinessName } from "@/lib/settings";
+import { buildPageMetadata, shopKeywords } from "@/lib/seo";
+import { fetchPublicSettings, getBusinessName } from "@/lib/settings";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const businessName = await getBusinessName();
+  const [businessName, settings] = await Promise.all([
+    getBusinessName(),
+    fetchPublicSettings(),
+  ]);
+  const leadTimeNote = settings?.deliveryInfo?.trim()
+    ? ` ${settings.deliveryInfo.trim()}`
+    : " Order at least 48 hours ahead for custom cakes.";
   return buildPageMetadata({
-    title: "Custom cake order",
-    description: `Request a custom cake from ${businessName} with your preferred design, flavours, size, and delivery details.`,
+    title: "Custom Cakes Lahore",
+    description: `Request a custom cake from ${businessName} in Lahore — choose flavours, size, design, and local delivery details.${leadTimeNote}`,
     path: "/custom-cake",
+    keywords: [
+      "custom cakes Lahore",
+      "DoughArt Bakers",
+      "DoughArt cakes",
+      ...shopKeywords,
+    ],
     brandName: businessName,
   });
 }

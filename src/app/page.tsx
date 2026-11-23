@@ -11,43 +11,30 @@ import { MostPopularItems } from "@/components/sections/MostPopularItems";
 import { Newsletter } from "@/components/sections/Newsletter";
 import { OrderProcess } from "@/components/sections/OrderProcess";
 import { Reviews } from "@/components/sections/Reviews";
-import { contactInfo } from "@/lib/contact";
-import { siteImages } from "@/lib/images";
-import { buildPageMetadata, siteUrl } from "@/lib/seo";
-import { getBusinessName } from "@/lib/settings";
-import { socialLinks } from "@/lib/site";
+import { buildPageMetadata, shopKeywords } from "@/lib/seo";
+import { fetchPublicSettings, getBusinessName } from "@/lib/settings";
+import { buildBakeryStructuredData } from "@/lib/structuredData";
 
 export async function generateMetadata(): Promise<Metadata> {
   const businessName = await getBusinessName();
   return buildPageMetadata({
     title: `${businessName} | Custom Cakes & Cake Delivery in Lahore`,
-    description: `${businessName} crafts custom cakes for birthdays, weddings, and celebrations in Lahore. Browse designs, place orders online, or request a bespoke cake.`,
+    description: `${businessName} crafts custom cakes, birthday cakes, celebration cakes, and cupcakes in Lahore. Order cakes online for local delivery, or request a bespoke design.`,
     path: "/",
+    keywords: [...shopKeywords, "DoughArt Bakers", "DoughArt cakes"],
     brandName: businessName,
   });
 }
 
 export default async function Home() {
-  const businessName = await getBusinessName();
-  const bakeryStructuredData = {
-    "@context": "https://schema.org",
-    "@type": "Bakery",
-    name: businessName,
-    url: siteUrl,
-    image: new URL(siteImages.hero, siteUrl).toString(),
-    logo: new URL(siteImages.logo, siteUrl).toString(),
-    telephone: contactInfo.phoneInternational,
-    email: contactInfo.email,
-    address: {
-      "@type": "PostalAddress",
-      streetAddress: "Thokkar Niaz Baig",
-      addressLocality: "Lahore",
-      addressRegion: "Punjab",
-      addressCountry: "PK",
-    },
-    openingHours: ["Mo-Sa 07:00-20:00", "Su 08:00-18:00"],
-    sameAs: socialLinks.map((link) => link.href),
-  } as const;
+  const [businessName, settings] = await Promise.all([
+    getBusinessName(),
+    fetchPublicSettings(),
+  ]);
+  const bakeryStructuredData = buildBakeryStructuredData(
+    settings,
+    businessName,
+  );
 
   return (
     <>
@@ -64,7 +51,7 @@ export default async function Home() {
         className="flex flex-1 flex-col outline-none"
         aria-label="Page content"
       >
-        <Hero />
+        <Hero businessName={businessName} />
         <FeatureStrip />
         <AboutUs />
         <CakeCategories />

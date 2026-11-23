@@ -9,10 +9,17 @@ import {
   formatPrice,
   getCategoryRef,
 } from "@/lib/catalog";
+import { formatCatalogListPrice } from "@/lib/catalogPricing";
 import { getCakeImageSrc } from "@/lib/media";
-import { buildPageMetadata, shopKeywords, siteUrl } from "@/lib/seo";
+import {
+  buildPageMetadata,
+  buildProductSeoDescription,
+  shopKeywords,
+  siteUrl,
+} from "@/lib/seo";
 import { getBusinessName } from "@/lib/settings";
 import { siteConfig } from "@/lib/site";
+import { buildBreadcrumbStructuredData } from "@/lib/structuredData";
 import { buildWhatsAppOrderUrl, getWhatsAppNumber } from "@/lib/whatsapp";
 
 type PageProps = {
@@ -38,15 +45,24 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const category = getCategoryRef(cake);
   const title = cake.name;
-  const description =
-    cake.description ??
-    `Order ${cake.name} from ${businessName} — ${formatPrice(cake.price)}. Place your order online or on WhatsApp.`;
+  const description = buildProductSeoDescription({
+    cakeName: cake.name,
+    cakeDescription: cake.description,
+    categoryName: category.name,
+    businessName,
+    priceLabel: formatCatalogListPrice(cake.slug, cake.price, formatPrice),
+  });
 
   return buildPageMetadata({
     title,
     description,
     path: `/cakes/${category.slug}/${cake.slug}`,
-    keywords: [cake.name, category.name, ...shopKeywords],
+    keywords: [
+      cake.name,
+      category.name,
+      `${category.name} Lahore`,
+      ...shopKeywords,
+    ],
     brandName: businessName,
   });
 }
@@ -102,9 +118,24 @@ export default async function CakeDetailPage({ params }: PageProps) {
         },
       }
     : null;
+  const breadcrumbStructuredData = buildBreadcrumbStructuredData([
+    { name: "Home", path: "/" },
+    { name: category.name, path: `/cakes/${category.slug}` },
+    {
+      name: cake.name,
+      path: `/cakes/${category.slug}/${cake.slug}`,
+    },
+  ]);
+  const imageAlt = `${cake.name} — ${category.name} from ${businessName} in Lahore`;
 
   return (
     <PublicPageLayout mainId="cake-detail" ariaLabel={cake.name}>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(breadcrumbStructuredData),
+          }}
+        />
         {productStructuredData ? (
           <script
             type="application/ld+json"
@@ -151,10 +182,10 @@ export default async function CakeDetailPage({ params }: PageProps) {
                 <CatalogCardImage
                   apiImage={apiImage}
                   fallbackSrc={fallback}
-                  alt={cake.name}
+                  alt={imageAlt}
                   sizes="(max-width: 1024px) 100vw, 50vw"
                   priority
-                  objectFit="contain"
+                  objectFit="cover"
                   imageDisplay={cake.imageDisplay}
                 />
               </div>
@@ -166,7 +197,7 @@ export default async function CakeDetailPage({ params }: PageProps) {
                     {cake.name}
                   </h1>
                   <p className="mt-3 font-display text-2xl font-semibold text-brand-primary sm:text-3xl">
-                    {formatPrice(cake.price)}
+                    {formatCatalogListPrice(cake.slug, cake.price, formatPrice)}
                   </p>
                 </div>
 

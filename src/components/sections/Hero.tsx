@@ -12,7 +12,16 @@ const heroCopy = {
     "Custom cakes made with premium ingredients and thoughtful design — crafted for birthdays, weddings, and every celebration in between.",
 } as const;
 
-export function Hero() {
+type HeroProps = {
+  /** From business settings — used for meaningful image alt only. */
+  businessName?: string;
+};
+
+export function Hero({ businessName }: HeroProps) {
+  const heroAlt = businessName?.trim()
+    ? `${businessName.trim()} custom cakes bakery in Lahore`
+    : "Custom cakes bakery in Lahore";
+
   return (
     <section
       id="hero"
@@ -26,12 +35,12 @@ export function Hero() {
         className="absolute inset-0"
         as="div"
       >
-        <div className="absolute inset-0" aria-hidden>
+        <div className="absolute inset-0">
           <SafeImage
             src={siteImages.heroMobile}
             fallbackSrc={siteImages.heroMobileFallback}
             fallbackSrcSecondary={siteImages.heroFallback}
-            alt=""
+            alt={heroAlt}
             fill
             priority
             sizes="100vw"
@@ -40,7 +49,7 @@ export function Hero() {
           <SafeImage
             src={siteImages.hero}
             fallbackSrc={siteImages.heroFallback}
-            alt=""
+            alt={heroAlt}
             fill
             priority
             sizes="100vw"

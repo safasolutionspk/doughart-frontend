@@ -1,5 +1,9 @@
 import type { LineDetailsFieldErrors } from "@/components/checkout/CheckoutItemDetailsSections";
 import {
+  isPerPoundCatalogSlug,
+  parseCatalogPounds,
+} from "@/lib/catalogPricing";
+import {
   emptyLineDetailsForTypes,
   hasItemType,
   type CheckoutLineDetails,
@@ -75,10 +79,14 @@ export function validateContactForm(
 export function validateLineDetails(
   itemTypes: ItemType[],
   details: CheckoutLineDetails,
+  options?: { slug?: string; basePrice?: number },
 ): LineDetailsFieldErrors {
   const errors: LineDetailsFieldErrors = {};
+  const perPound =
+    isPerPoundCatalogSlug(options?.slug) && (options?.basePrice ?? 0) > 0;
+  const requiresCakeFields = hasItemType(itemTypes, "cake") || perPound;
 
-  if (hasItemType(itemTypes, "cake")) {
+  if (requiresCakeFields) {
     const size = details.cake?.size?.trim() ?? "";
     const flavor = details.cake?.flavor?.trim() ?? "";
     const message = details.cake?.message?.trim() ?? "";
@@ -88,12 +96,16 @@ export function validateLineDetails(
       errors.size = "Please enter cake pounds.";
     } else if (size.length > 80) {
       errors.size = "Pounds is too long (maximum 80 characters).";
+    } else if (perPound && parseCatalogPounds(size) == null) {
+      errors.size = "Enter a valid pounds amount (for example 1, 2, or 3).";
     }
 
-    if (!flavor) {
-      errors.flavor = "Please enter cake flavor.";
-    } else if (flavor.length > 120) {
-      errors.flavor = "Flavor is too long (maximum 120 characters).";
+    if (hasItemType(itemTypes, "cake")) {
+      if (!flavor) {
+        errors.flavor = "Please enter cake flavor.";
+      } else if (flavor.length > 120) {
+        errors.flavor = "Flavor is too long (maximum 120 characters).";
+      }
     }
 
     if (message.length > 200) {
@@ -123,7 +135,13 @@ export function validateLineDetails(
 }
 
 export function validateCheckoutLines(
-  lines: Array<{ key: string; itemTypes: ItemType[]; details: CheckoutLineDetails }>,
+  lines: Array<{
+    key: string;
+    itemTypes: ItemType[];
+    details: CheckoutLineDetails;
+    slug?: string;
+    basePrice?: number;
+  }>,
 ): Record<string, LineDetailsFieldErrors> {
   const lineErrors: Record<string, LineDetailsFieldErrors> = {};
 
@@ -132,7 +150,10 @@ export function validateCheckoutLines(
       line.details && Object.keys(line.details).length > 0
         ? line.details
         : emptyLineDetailsForTypes(line.itemTypes);
-    const errors = validateLineDetails(line.itemTypes, details);
+    const errors = validateLineDetails(line.itemTypes, details, {
+      slug: line.slug,
+      basePrice: line.basePrice,
+    });
     if (Object.keys(errors).length > 0) {
       lineErrors[line.key] = errors;
     }

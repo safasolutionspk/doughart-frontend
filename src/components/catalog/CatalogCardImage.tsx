@@ -19,7 +19,11 @@ type CatalogCardImageProps = {
   sizes: string;
   className?: string;
   priority?: boolean;
-  /** Defaults to contain so Admin-uploaded product images are not cropped. */
+  /**
+   * How the photo fills the square frame.
+   * Prefer `cover` for catalog/category/combo cards so frames look filled.
+   * Use `contain` only when the full product must stay visible (no crop).
+   */
   objectFit?: "cover" | "contain";
   /** Optional pan/zoom metadata from admin Set Image. */
   imageDisplay?: ImageDisplay | null;
@@ -36,7 +40,7 @@ export function CatalogCardImage({
   sizes,
   className,
   priority,
-  objectFit = "contain",
+  objectFit = "cover",
   imageDisplay,
 }: CatalogCardImageProps) {
   const trimmedApiImage = apiImage?.trim() ?? "";
@@ -65,7 +69,7 @@ function CatalogCardImageInner({
   sizes,
   className,
   priority,
-  objectFit = "contain",
+  objectFit = "cover",
   imageDisplay,
 }: CatalogCardImageProps & { imageDisplay?: ImageDisplay }) {
   const trimmedApiImage = apiImage?.trim() ?? "";
@@ -84,12 +88,15 @@ function CatalogCardImageInner({
   const showRemote = isRemoteApiUrl(displaySrc) && !useFallbackOnly;
   const useFramed = Boolean(imageDisplay);
 
+  // Cover fills the 1:1 frame without distortion. Slight upper bias keeps
+  // cake toppers in view for typical portrait product photos; contain is
+  // reserved for callers that must show the full uncropped subject.
   const imageClassName = cn(
     useFramed
       ? undefined
       : objectFit === "contain"
         ? "object-contain object-center"
-        : "object-cover object-center",
+        : "object-cover object-[center_40%]",
     className,
   );
 

@@ -15,6 +15,7 @@ import {
 } from "@/lib/catalog/cardStyles";
 import { cn } from "@/lib/cn";
 import { formatPrice, getCategoryRef, type PublicCake } from "@/lib/catalog";
+import { formatCatalogListPrice } from "@/lib/catalogPricing";
 import { getCakeImageSrc } from "@/lib/media";
 import { getWhatsAppNumber, buildWhatsAppOrderUrl } from "@/lib/whatsapp";
 
@@ -82,9 +83,9 @@ export async function CakeCard({
           <CatalogCardImage
             apiImage={apiImage}
             fallbackSrc={fallback}
-            alt={cake.name}
+            alt={`${cake.name} — ${category.name}`}
             sizes="(max-width: 640px) 10rem, (max-width: 1280px) 33vw, 25vw"
-            objectFit="contain"
+            objectFit="cover"
             imageDisplay={cake.imageDisplay}
           />
           <span className="pink-overlay" aria-hidden />
@@ -117,7 +118,7 @@ export async function CakeCard({
                 : "text-xs sm:text-sm",
             )}
           >
-            {formatPrice(cake.price)}
+            {formatCatalogListPrice(cake.slug, cake.price, formatPrice)}
           </p>
         </div>
 

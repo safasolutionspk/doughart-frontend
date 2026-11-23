@@ -9,8 +9,13 @@ import { CheckoutItemDetailsSections } from "@/components/checkout/CheckoutItemD
 import { CheckoutOrderSummary } from "@/components/checkout/CheckoutOrderSummary";
 import { Button } from "@/components/ui/Button";
 import { OrderApiError, submitOrder } from "@/lib/api";
-import { getCartSubtotal, hasPricedItems } from "@/lib/cart/cart";
+import { hasPricedItems } from "@/lib/cart/cart";
 import { getCartItemTypes } from "@/lib/cart/types";
+import {
+  estimateCatalogLinePrice,
+  formatCatalogListPrice,
+  isPerPoundCatalogSlug,
+} from "@/lib/catalogPricing";
 import { checkoutCopy } from "@/lib/checkout";
 import {
   clearCheckoutDraft,
@@ -100,33 +105,30 @@ export function CheckoutForm({
   const canCheckout = checkoutFromCart || checkoutFromCakeQuery;
   const showEmptyState = cartHydrated && !canCheckout;
 
-  const cartSubtotal = getCartSubtotal(cartItems);
-  const showCartSubtotal = checkoutFromCart && hasPricedItems(cartItems);
-  const singleCakeTotal =
-    checkoutFromCakeQuery && selectedCake && selectedCake.price > 0
-      ? selectedCake.price
-      : 0;
-  const orderTotal =
-    showCartSubtotal ? cartSubtotal : singleCakeTotal > 0 ? singleCakeTotal : 0;
-  const showPricing = orderTotal > 0;
-
   const detailLines = useMemo(() => {
     if (checkoutFromCart) {
       return cartItems.map((item) => ({
         key: item.id,
         name: item.name,
+        slug: item.cakeSlug,
+        basePrice: item.unitPrice,
         itemTypes: getCartItemTypes(item),
+        quantity: item.quantity,
         showHeading: cartItems.length > 1,
       }));
     }
 
     if (checkoutFromCakeQuery) {
       const key = `direct:${selectedCakeSlug ?? selectedCake?.slug ?? "cake"}`;
+      const slug = selectedCakeSlug ?? selectedCake?.slug ?? "";
       return [
         {
           key,
           name: selectedCake?.name ?? "Selected product",
+          slug,
+          basePrice: selectedCake?.price,
           itemTypes: getCakeItemTypes(selectedCake ?? {}),
+          quantity: 1,
           showHeading: false,
         },
       ];
@@ -141,19 +143,70 @@ export function CheckoutForm({
     selectedCakeSlug,
   ]);
 
-  useEffect(() => {
+  const orderTotal = useMemo(() => {
+    let total = 0;
+    let complete = true;
+    let anyPriced = false;
+
+    for (const line of detailLines) {
+      const estimate = estimateCatalogLinePrice({
+        slug: line.slug,
+        basePrice: line.basePrice,
+        quantity: line.quantity,
+        poundsRaw: lineDetails[line.key]?.cake?.size,
+      });
+      if ((line.basePrice ?? 0) > 0) {
+        anyPriced = true;
+      }
+      if (estimate.lineTotal != null) {
+        total += estimate.lineTotal;
+      } else if (estimate.pricingMode === "per_pound_pending") {
+        complete = false;
+      }
+    }
+
+    if (!anyPriced) {
+      return 0;
+    }
+    return complete ? total : total > 0 ? total : 0;
+  }, [detailLines, lineDetails]);
+
+  const showPricing =
+    orderTotal > 0 ||
+    (checkoutFromCart && hasPricedItems(cartItems)) ||
+    Boolean(selectedCake && selectedCake.price > 0);
+
+  // Ensure each checkout line has detail state when cart/cake selection changes.
+  // Adjust during render (React-approved) instead of syncing via useEffect.
+  const detailLineSignature = detailLines
+    .map((line) => `${line.key}:${line.itemTypes.join(",")}`)
+    .join("|");
+  const [prevDetailLineSignature, setPrevDetailLineSignature] = useState(
+    detailLineSignature,
+  );
+  if (detailLineSignature !== prevDetailLineSignature) {
+    setPrevDetailLineSignature(detailLineSignature);
     setLineDetails((prev) => {
       const next = { ...prev };
       let changed = false;
       for (const line of detailLines) {
+        const needsPerPoundCake =
+          isPerPoundCatalogSlug(line.slug) && (line.basePrice ?? 0) > 0;
         if (!next[line.key]) {
           next[line.key] = emptyLineDetailsForTypes(line.itemTypes);
+          changed = true;
+        }
+        if (needsPerPoundCake && !next[line.key]?.cake) {
+          next[line.key] = {
+            ...next[line.key],
+            cake: { size: "", flavor: "", message: "", notes: "" },
+          };
           changed = true;
         }
       }
       return changed ? next : prev;
     });
-  }, [detailLines]);
+  }
 
   useEffect(() => {
     if (draftRestored.current) {
@@ -224,6 +277,8 @@ export function CheckoutForm({
       detailLines.map((line) => ({
         key: line.key,
         itemTypes: line.itemTypes,
+        slug: line.slug,
+        basePrice: line.basePrice,
         details: lineDetails[line.key] ?? emptyLineDetailsForTypes(line.itemTypes),
       })),
     );
@@ -305,7 +360,7 @@ export function CheckoutForm({
       ) : null}
 
       {checkoutFromCart ? (
-        <CheckoutOrderSummary items={cartItems} />
+        <CheckoutOrderSummary items={cartItems} lineDetails={lineDetails} />
       ) : null}
 
       {selectedCake && !checkoutFromCart ? (
@@ -318,7 +373,11 @@ export function CheckoutForm({
               {selectedCake.name}
             </p>
             <p className="font-display text-xl font-semibold text-brand-primary sm:text-2xl">
-              {formatPrice(selectedCake.price)}
+              {formatCatalogListPrice(
+                selectedCake.slug,
+                selectedCake.price,
+                formatPrice,
+              )}
             </p>
           </div>
           {selectedCake.description ? (
@@ -454,6 +513,8 @@ export function CheckoutForm({
             itemKey={line.key}
             itemName={line.name}
             itemTypes={line.itemTypes}
+            cakeSlug={line.slug}
+            basePrice={line.basePrice}
             details={
               lineDetails[line.key] ?? emptyLineDetailsForTypes(line.itemTypes)
             }
@@ -492,9 +553,18 @@ export function CheckoutForm({
           <div className="flex items-center justify-between gap-3 text-sm">
             <span className="font-medium text-brand-brown">Order total</span>
             <span className="font-display text-xl font-semibold text-brand-primary sm:text-2xl">
-              {formatPrice(orderTotal)}
+              {orderTotal > 0 ? formatPrice(orderTotal) : "—"}
             </span>
           </div>
+          {orderTotal <= 0 &&
+          detailLines.some(
+            (line) =>
+              isPerPoundCatalogSlug(line.slug) && (line.basePrice ?? 0) > 0,
+          ) ? (
+            <p className="text-xs text-brand-muted">
+              Enter Pounds above to calculate the total for per-pound cakes.
+            </p>
+          ) : null}
         </div>
       ) : null}
 

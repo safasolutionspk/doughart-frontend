@@ -1,5 +1,6 @@
 "use client";
 
+import { isPerPoundCatalogSlug } from "@/lib/catalogPricing";
 import {
   hasItemType,
   type CheckoutLineDetails,
@@ -31,6 +32,9 @@ type CheckoutItemDetailsSectionsProps = {
   itemKey: string;
   itemName?: string;
   itemTypes: ItemType[];
+  /** Catalog slug — used to show Pounds for per-pound cakes. */
+  cakeSlug?: string;
+  basePrice?: number;
   details: CheckoutLineDetails;
   errors?: LineDetailsFieldErrors;
   disabled?: boolean;
@@ -53,15 +57,19 @@ export function CheckoutItemDetailsSections({
   itemKey,
   itemName,
   itemTypes,
+  cakeSlug,
+  basePrice,
   details,
   errors,
   disabled,
   showItemHeading = false,
   onChange,
 }: CheckoutItemDetailsSectionsProps) {
-  const showCake = hasItemType(itemTypes, "cake");
+  const perPound =
+    isPerPoundCatalogSlug(cakeSlug) && (basePrice ?? 0) > 0;
+  const showCake = hasItemType(itemTypes, "cake") || perPound;
   const showGift = hasItemType(itemTypes, "gift");
-  const showOther = hasItemType(itemTypes, "other");
+  const showOther = hasItemType(itemTypes, "other") && !perPound;
 
   return (
     <div className="space-y-6">

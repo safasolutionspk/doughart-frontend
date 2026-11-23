@@ -14,6 +14,10 @@ import {
 } from "@/lib/customCake/draft";
 import { cn } from "@/lib/cn";
 import {
+  formatLocalDateYmd,
+  isLocalDateTodayOrFuture,
+} from "@/lib/localDate";
+import {
   cakeTypeOptions,
   orderFormCopy,
 } from "@/lib/orderForm";
@@ -258,6 +262,12 @@ export function CustomCakeOrderForm({
       return;
     }
 
+    if (form.deliveryDate && !isLocalDateTodayOrFuture(form.deliveryDate)) {
+      setStatus("error");
+      setErrorMessage("Delivery date must be today or a future date.");
+      return;
+    }
+
     const email = form.email.trim();
     if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       setStatus("error");
@@ -453,6 +463,7 @@ export function CustomCakeOrderForm({
             name="deliveryDate"
             type="date"
             disabled={isLoading}
+            min={formatLocalDateYmd()}
             value={form.deliveryDate}
             onChange={(e) => updateField("deliveryDate", e.target.value)}
             className={inputClassName}

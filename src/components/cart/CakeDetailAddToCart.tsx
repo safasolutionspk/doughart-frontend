@@ -1,9 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useCart } from "@/components/cart/CartProvider";
 import { OrderNowButton } from "@/components/cart/OrderNowButton";
 import { Button } from "@/components/ui/Button";
+import { formatPrice } from "@/lib/catalog";
+import {
+  estimateCatalogLinePrice,
+  formatCatalogListPrice,
+  isPerPoundCatalogSlug,
+} from "@/lib/catalogPricing";
 import { cn } from "@/lib/cn";
 import type { AddToCartInput } from "@/lib/cart/types";
 
@@ -21,6 +27,20 @@ export function CakeDetailAddToCart({
   const { addItem } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
+
+  const perPound =
+    isPerPoundCatalogSlug(item.cakeSlug) && (item.unitPrice ?? 0) > 0;
+  const liveEstimate = useMemo(
+    () =>
+      estimateCatalogLinePrice({
+        slug: item.cakeSlug,
+        basePrice: item.unitPrice,
+        quantity,
+        // Pounds are collected on checkout with the existing Pounds field.
+        poundsRaw: perPound ? "1" : undefined,
+      }),
+    [item.cakeSlug, item.unitPrice, quantity, perPound],
+  );
 
   function handleAdd() {
     addItem({ ...item, quantity });
@@ -73,6 +93,37 @@ export function CakeDetailAddToCart({
           </button>
         </div>
       </div>
+
+      {item.unitPrice != null && item.unitPrice > 0 ? (
+        <p className="text-sm text-brand-brown">
+          {perPound ? (
+            <>
+              <span className="font-semibold text-brand-primary">
+                {formatCatalogListPrice(
+                  item.cakeSlug,
+                  item.unitPrice,
+                  formatPrice,
+                )}
+              </span>
+              <span className="text-brand-muted">
+                {" "}
+                · {quantity} cake{quantity === 1 ? "" : "s"} · total set when
+                you enter Pounds at checkout
+                {liveEstimate.lineTotal != null
+                  ? ` (e.g. 1 pound = ${formatPrice(liveEstimate.lineTotal)})`
+                  : null}
+              </span>
+            </>
+          ) : liveEstimate.lineTotal != null ? (
+            <>
+              <span className="text-brand-muted">Line total </span>
+              <span className="font-semibold text-brand-primary">
+                {formatPrice(liveEstimate.lineTotal)}
+              </span>
+            </>
+          ) : null}
+        </p>
+      ) : null}
 
       <Button
         type="button"

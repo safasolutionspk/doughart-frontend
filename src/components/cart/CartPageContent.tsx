@@ -6,13 +6,17 @@ import { useCart } from "@/components/cart/CartProvider";
 import { CartEmptyState } from "@/components/cart/CartEmptyState";
 import { Button } from "@/components/ui/Button";
 import { formatPrice } from "@/lib/catalog";
+import {
+  formatCatalogListPrice,
+  isPerPoundCatalogSlug,
+} from "@/lib/catalogPricing";
 import { hasPricedItems } from "@/lib/cart/cart";
 import { cn } from "@/lib/cn";
 import { siteImages } from "@/lib/images";
 import { isBackendUploadImageUrl } from "@/lib/media";
 
 export function CartPageContent() {
-  const { items, hydrated, subtotal, removeItem, setQuantity } = useCart();
+  const { items, hydrated, removeItem, setQuantity } = useCart();
 
   if (!hydrated) {
     return (
@@ -53,7 +57,7 @@ export function CartPageContent() {
                   alt=""
                   fill
                   sizes="96px"
-                  className="object-cover"
+                  className="object-cover object-[center_40%]"
                   unoptimized={isRemote}
                 />
               </Link>
@@ -69,11 +73,18 @@ export function CartPageContent() {
                     </Link>
                     {item.unitPrice != null ? (
                       <p className="mt-0.5 text-sm font-semibold text-brand-primary">
-                        {formatPrice(item.unitPrice)}
-                        <span className="font-normal text-brand-muted">
-                          {" "}
-                          each
-                        </span>
+                        {formatCatalogListPrice(
+                          item.cakeSlug,
+                          item.unitPrice,
+                          formatPrice,
+                        )}
+                        {!isPerPoundCatalogSlug(item.cakeSlug) ||
+                        item.unitPrice <= 0 ? (
+                          <span className="font-normal text-brand-muted">
+                            {" "}
+                            each
+                          </span>
+                        ) : null}
                       </p>
                     ) : null}
                   </div>
@@ -120,8 +131,15 @@ export function CartPageContent() {
                   </div>
 
                   {item.unitPrice != null ? (
-                    <p className="text-sm font-semibold text-brand-brown">
-                      {formatPrice(item.unitPrice * item.quantity)}
+                    <p className="text-right text-sm font-semibold text-brand-brown">
+                      {isPerPoundCatalogSlug(item.cakeSlug) &&
+                      item.unitPrice > 0 ? (
+                        <span className="font-normal text-brand-muted">
+                          Set pounds at checkout
+                        </span>
+                      ) : (
+                        formatPrice(item.unitPrice * item.quantity)
+                      )}
                     </p>
                   ) : null}
                 </div>
@@ -137,13 +155,35 @@ export function CartPageContent() {
         )}
       >
         {showSubtotal ? (
-          <div className="flex items-center justify-between border-b border-brand-border/60 pb-4">
-            <span className="text-sm font-semibold uppercase tracking-wide text-brand-brown">
-              Subtotal
-            </span>
-            <span className="font-display text-xl font-semibold text-brand-primary">
-              {formatPrice(subtotal)}
-            </span>
+          <div className="border-b border-brand-border/60 pb-4">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-semibold uppercase tracking-wide text-brand-brown">
+                Subtotal
+              </span>
+              <span className="font-display text-xl font-semibold text-brand-primary">
+                {formatPrice(
+                  items.reduce((sum, item) => {
+                    if (item.unitPrice == null || item.unitPrice <= 0) {
+                      return sum;
+                    }
+                    if (isPerPoundCatalogSlug(item.cakeSlug)) {
+                      return sum;
+                    }
+                    return sum + item.unitPrice * item.quantity;
+                  }, 0),
+                )}
+              </span>
+            </div>
+            {items.some(
+              (item) =>
+                isPerPoundCatalogSlug(item.cakeSlug) &&
+                (item.unitPrice ?? 0) > 0,
+            ) ? (
+              <p className="mt-2 text-xs text-brand-muted">
+                Per-pound cake totals are calculated at checkout when you enter
+                Pounds.
+              </p>
+            ) : null}
           </div>
         ) : (
           <p className="border-b border-brand-border/60 pb-4 text-sm text-brand-muted">

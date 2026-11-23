@@ -2,6 +2,11 @@ import type { MetadataRoute } from "next";
 import { fetchPublicCakes, fetchPublicCategories } from "@/lib/catalog";
 import { siteUrl } from "@/lib/seo";
 
+/**
+ * Indexable public routes only.
+ * Auth/transactional pages (login, signup, cart, checkout, account, etc.) are
+ * noIndex and must not appear here.
+ */
 const staticPaths = [
   "/",
   "/cakes",
@@ -12,8 +17,6 @@ const staticPaths = [
   "/gallery",
   "/reviews",
   "/privacy-policy",
-  "/login",
-  "/signup",
 ] as const;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {

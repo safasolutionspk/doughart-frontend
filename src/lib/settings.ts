@@ -14,6 +14,9 @@ export type PublicSettings = {
   address: string;
   whatsapp?: string;
   deliveryInfo?: string;
+  /** Optional social URLs from Admin settings (SEO sameAs). */
+  facebook?: string;
+  instagram?: string;
 };
 
 /**
