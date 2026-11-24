@@ -1,5 +1,5 @@
 import { siteImages } from "@/lib/images";
-import { getPublicApiUrl } from "@/lib/config/apiUrl";
+import { getPublicApiUrl, rewriteDeadApiOrigin } from "@/lib/config/apiUrl";
 
 const API_BASE_URL = getPublicApiUrl();
 
@@ -112,7 +112,7 @@ export function resolveImageSrc(path?: string | null): string | undefined {
   const trimmed = path.trim();
 
   if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
-    return trimmed;
+    return rewriteDeadApiOrigin(trimmed);
   }
 
   const pathname = getPathname(trimmed);
@@ -162,7 +162,7 @@ export function resolveCakeApiImage(image?: string | null): string | null {
   }
 
   if (stored.startsWith("http://") || stored.startsWith("https://")) {
-    return stored;
+    return rewriteDeadApiOrigin(stored);
   }
 
   const resolved = resolveImageSrc(stored);

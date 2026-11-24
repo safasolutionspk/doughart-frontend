@@ -8,9 +8,9 @@ import {
   normalizeImageDisplay,
   type ImageDisplay,
 } from "@/lib/imageDisplay";
+import { getPublicApiUrl } from "@/lib/config/apiUrl";
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ?? "http://localhost:5000";
+const API_BASE_URL = getPublicApiUrl();
 
 type CatalogCardImageProps = {
   apiImage?: string;

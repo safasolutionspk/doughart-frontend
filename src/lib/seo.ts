@@ -9,9 +9,23 @@ import { DEFAULT_BUSINESS_NAME } from "@/lib/settings";
  * at **build time** for Next.js (e.g. https://www.example.com).
  * Do not hardcode a production domain here — unset falls back to local dev only.
  */
-export const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
-  "http://localhost:3000";
+function resolveSiteUrl(): string {
+  const configured =
+    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
+    "http://localhost:3000";
+  try {
+    const hostname = new URL(configured).hostname.toLowerCase();
+    // Prior misconfigured builds used doughart.com, which times out.
+    if (hostname === "www.doughart.com" || hostname === "doughart.com") {
+      return "https://www.doughartbakers.com";
+    }
+  } catch {
+    return configured;
+  }
+  return configured;
+}
+
+export const siteUrl = resolveSiteUrl();
 
 const defaultOgImage = siteImages.hero;
 

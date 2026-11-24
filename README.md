@@ -22,7 +22,7 @@ Edit `.env.local`:
 | Variable | Required | Description |
 | --- | --- | --- |
 | `NEXT_PUBLIC_API_URL` | Yes | Backend URL, no trailing slash (e.g. `http://localhost:5000`) |
-| `NEXT_PUBLIC_SITE_URL` | No | Canonical site URL for SEO (default: `https://www.doughart.com`) |
+| `NEXT_PUBLIC_SITE_URL` | No | Canonical site URL for SEO (production: `https://www.doughartbakers.com`) |
 | `NEXT_PUBLIC_WHATSAPP` | No | Legacy optional value. Public WhatsApp uses `src/lib/contact.ts` (`923277707333`) and is not overridden by ENV or Admin settings. |
 
 ```bash
